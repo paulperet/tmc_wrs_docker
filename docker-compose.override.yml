@@ -1,0 +1,15 @@
+# Auto-merged by docker-compose (no need to pass -f).
+#
+# Fixes the `workspace` container crash-looping on macOS. Its stock /entrypoint.sh is
+# `#!/bin/bash -e` and runs `sudo chown -R developer:developer /workspace`, which fails
+# on bind-mounted .git pack files (chown is unsupported on macOS bind mounts). Under
+# `-e` that aborts startup -- both for the container itself and for the supervisor
+# `jupyter` program, which re-invokes /entrypoint.sh.
+#
+# We bind-mount a patched entrypoint (pi05_hsr/workspace-entrypoint.sh) that drops `-e`
+# and skips the chown. Result: IDE on :3001, Jupyter on :3002, and rviz/rqt on the
+# shared X display :0 (visible in the noVNC screen at :3000).
+services:
+  workspace:
+    volumes:
+      - ./pi05_hsr/workspace-entrypoint.sh:/entrypoint.sh:ro
